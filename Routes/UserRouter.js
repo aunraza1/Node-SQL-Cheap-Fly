@@ -5,7 +5,7 @@ const {
   addUser,
   authenticateUser,
   saveHotel,
-  addHotelReview,
+  addReview,
   removeSaved,
   showAllHotels,
 } = require("../dboperations");
@@ -15,5 +15,5 @@ router.post("/CreateUser", addUser);
 router.post("/Authenticate", authenticateUser);
 router.post("/SaveHotel", saveHotel);
 router.post("/UnsaveHotel", removeSaved);
-router.post("/AddHotelReview", addHotelReview);
+router.post("/AddReview", addReview);
 module.exports = router;

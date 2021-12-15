@@ -130,9 +130,20 @@ const showAllHotels = async (req, res) => {
   try {
     let pool = await sql.connect(config);
     let showHotels = await pool.request()
-      .query(`SELECT  H.hotel_name,H.hotel_location,H.hotel_image, H.hotel_id,R.room_id, R.room_name,R.room_price FROM Hotels as H
-      INNER JOIN Room as R
-      ON H.hotel_id=R.hotel_id
+      .query(`SELECT  DISTINCT H.hotel_name,H.hotel_location,H.hotel_image, H.hotel_id, R.room_id, room_name = STUFF((
+          SELECT ',' + R.room_name
+          FROM Room R
+          WHERE H.hotel_id = R.hotel_id 
+          FOR XML PATH ('')), 1, 1, ''
+               ),room_price = STUFF((
+          SELECT ',' + CAST(R.room_price AS VARCHAR(20))
+          FROM Room R
+          WHERE H.hotel_id = R.hotel_id
+          FOR XML PATH ('')), 1, 1, ''
+               )  FROM Hotels as H 
+			 JOIN Room   as R
+			 ON R.hotel_id=H.hotel_id
+      
       `);
     if (showHotels.recordset.length > 0) {
       res.send({
@@ -140,7 +151,7 @@ const showAllHotels = async (req, res) => {
         data: showHotels.recordset,
       });
     } else {
-      res.send({ message: "No Hotels Exist" });
+      res.send({ message: "No Hotels Exist", data: [] });
     }
   } catch (e) {
     console.log(e);
@@ -193,10 +204,10 @@ const removeSaved = async (req, res) => {
   }
 };
 
-const addHotelReview = async (req, res) => {
+const addReview = async (req, res) => {
   try {
     let pool = await sql.connect(config);
-    let query1 = `INSERT INTO Hotel_Reviews VALUES('${req.body.reviewStars}',${req.body.bookingId})`;
+    let query1 = `INSERT INTO Reviews VALUES('${req.body.reviewStars}',${req.body.bookingId})`;
     pool.request().query(query1, (err) => {
       if (!err) {
         res.send({ message: "Review Added Successfully!" });
@@ -209,6 +220,13 @@ const addHotelReview = async (req, res) => {
   }
 };
 
+const addBookingRequest = async (req, res) => {
+  try {
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 module.exports = {
   getAllUsers: getAllUsers,
   addUser: addUser,
@@ -216,8 +234,9 @@ module.exports = {
   addRooms: addRooms,
   saveHotel: saveHotel,
   removeSaved: removeSaved,
-  addHotelReview: addHotelReview,
+  addReview: addReview,
   showVendorHotels: showVendorHotels,
   showAllHotels: showAllHotels,
+  addBookingRequest: addBookingRequest,
   authenticateUser: authenticateUser,
 };
